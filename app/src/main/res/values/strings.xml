@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">akuanaksehatmiriplinetoday</string>
+    <string name="label_placeholder">title</string>
+
+    <array name="img_src">
+    <item>@drawable/batuk</item>
+        <item>@drawable/flu</item>
+    </array>
+</resources>
