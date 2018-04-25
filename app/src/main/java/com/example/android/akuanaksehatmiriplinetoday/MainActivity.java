@@ -8,47 +8,58 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
-    private ArrayList<Penyakit> mAirData;
+    private ArrayList<Penyakit> mPenyakitData;
     private PenyakitAdapter mAdapter;
+    private DatabaseReference mDatabaseRef;
+
+    public MainActivity(){}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toast.makeText(this, "Selamat Datang", Toast.LENGTH_SHORT).show();
-
+        mDatabaseRef = FirebaseDatabase.getInstance().getReference("penyakit");
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
 
-        int gridColumn = getResources().getInteger(R.integer.grid_column_count);
+//        int gridColumn = getResources().getInteger(R.integer.grid_column_count);
 
-        mRecyclerView.setLayoutManager(new GridLayoutManager(this, gridColumn));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        mAirData = new ArrayList<>();
+        mPenyakitData = new ArrayList<>();
 
-        mAdapter = new PenyakitAdapter(this, mAirData);
+        mAdapter = new PenyakitAdapter(this, mPenyakitData);
         mRecyclerView.setAdapter(mAdapter);
 
-        initialiseData();
+        mDatabaseRef.addValueEventListener(new ValueEventListener() {
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot post : dataSnapshot.getChildren()){
+                    Penyakit model = post.getValue(Penyakit.class);
+                    mPenyakitData.add(model);
+                }
+                mAdapter = new PenyakitAdapter(MainActivity.this, mPenyakitData);
+                mRecyclerView.setAdapter(mAdapter);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
 
     }
 
-    private void initialiseData() {
-        String[] penyakitList = getResources().getStringArray(R.array.name_src);
-        String[] penyakitInfo = getResources().getStringArray(R.array.info_src);
-        TypedArray penyakitImageResource = getResources().obtainTypedArray(R.array.img_src);
-        mAirData.clear();
 
-        for (int i = 0; i < penyakitList.length; i++) {
-            mAirData.add(new Penyakit(penyakitList[i], penyakitInfo[i], penyakitImageResource.getResourceId(i, 0)));
-        }
-
-        penyakitImageResource.recycle();
-
-        mAdapter.notifyDataSetChanged();
-    }
 }
